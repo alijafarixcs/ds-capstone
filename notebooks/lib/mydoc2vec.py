@@ -8,7 +8,7 @@ nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 class Doc2VecRecommender:
-    def __init__(self,data=None, vector_size=100, window=5, min_count=2, workers=4, epochs=20):
+    def __init__(self,data=None, vector_size=100, window=5, min_count=5, workers=8, epochs=20):
         self.vector_size = vector_size
         self.window = window
         self.min_count = min_count
@@ -25,11 +25,13 @@ class Doc2VecRecommender:
         return [word for word in text.split() if word.lower() not in stop_words]
 
     def train(self, df):
-        documents = [TaggedDocument(self.preprocess(doc), [i]) for i, doc in enumerate(df['all'])]
+       # documents = [TaggedDocument(self.preprocess(doc), [i]) for i, doc in enumerate(df['all'])]
+        documents =[TaggedDocument(df['all'].parallel_apply(self.preprocess), [i]) for i, doc in enumerate(df['all'])]
         train_docs, test_docs = train_test_split(documents, test_size=0.2, random_state=42)
         self.model = Doc2Vec(vector_size=self.vector_size, window=self.window, min_count=self.min_count, workers=self.workers, epochs=self.epochs)
         self.model.build_vocab(train_docs)
         self.model.train(train_docs, total_examples=self.model.corpus_count, epochs=self.model.epochs)
+        return test_docs
     def load_model(self,path='doc2vec_model'):
          self.model = Doc2Vec.load(path)
     def get_similar_indexs(self,text=["This is a new document to find similar documents for"]):

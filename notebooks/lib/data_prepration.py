@@ -23,7 +23,7 @@ class DataPreparation:
             self.data = pd.read_csv(self.file_path)
         else:
             self.data =self.read_large_csv(self.file_path,1000)
-        remove_cols=['Unnamed: 0.1', 'Unnamed: 0']
+        remove_cols=['Unnamed: 0.1', 'Unnamed: 0',]
         if all(col in self.data.columns for col in remove_cols):
             self.data = self.data.drop(columns=['Unnamed: 0.1', 'Unnamed: 0'])
         
@@ -36,7 +36,7 @@ class DataPreparation:
         self.data['publishedDate'] = pd.to_datetime(self.data['publishedDate'], errors='coerce')
         self.data['publishedDate'] = self.data['publishedDate'].ffill(axis=0)
         self.data['publishedDate'] = self.data['publishedDate'].bfill(axis=0)
-
+        self.data['Title']=self.data['Title'].astype(str)
        
         
         self.data['publishedDate'] = self.data['publishedDate'].replace({pd.NaT:np.nan})
