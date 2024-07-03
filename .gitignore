@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
+notebooks/lib/__pycache__/*
 data/*.csv
 models/*.sav
 mlruns

@@ -6,13 +6,13 @@ import numpy as np
 
 
 class DataPreparation:
-    def __init__(self, file_path):
+    def __init__(self, file_path,data=None):
         self.file_path = file_path
-        self.data = None
+        self.data = data
 
-    def read_large_csv(self,file_path, chunksize=100000):
+    def read_large_csv(self, chunksize=100000):
         chunks = []
-        for chunk in pd.read_csv(file_path, chunksize=chunksize):
+        for chunk in pd.read_csv(self.file_path, chunksize=chunksize):
             chunks.append(chunk)
         
         self.data = pd.concat(chunks, ignore_index=True)
