@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
+
 class DataPreparation:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -14,15 +15,15 @@ class DataPreparation:
         for chunk in pd.read_csv(file_path, chunksize=chunksize):
             chunks.append(chunk)
         
-        df = pd.concat(chunks, ignore_index=True)
-        return df
+        self.data = pd.concat(chunks, ignore_index=True)
+        return self.data
     
     def clean_and_preprocess(self,large_size=False):
         
         if not large_size:
             self.data = pd.read_csv(self.file_path)
         else:
-            self.data =self.read_large_csv(self.file_path,1000)
+            self.data =self.read_large_csv(self.file_path,10000)
         remove_cols=['Unnamed: 0.1', 'Unnamed: 0',]
         if all(col in self.data.columns for col in remove_cols):
             self.data = self.data.drop(columns=['Unnamed: 0.1', 'Unnamed: 0'])
@@ -50,7 +51,7 @@ class DataPreparation:
         self.data['categories'] = self.data['categories'].apply(ast.literal_eval)
         new_column_names = [col.lower().replace('review/', '') for col in self.data.columns]
         self.data.rename(columns=dict(zip(self.data.columns, new_column_names)),inplace=True)
-        
+        self.data[~self.data.duplicated(subset=['description', 'title'], keep='first')]
         self.data.fillna('',inplace=True)
     def Normalize(self):
         self.data=self.data.applymap(lambda x: x.lower() if type(x) is str else x)
