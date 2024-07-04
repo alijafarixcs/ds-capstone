@@ -5,7 +5,6 @@ from nltk.corpus import stopwords
 import nltk
 import sys
 sys.path.append('.')
-from lib.paralellism import *
 import missingno as msno
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity

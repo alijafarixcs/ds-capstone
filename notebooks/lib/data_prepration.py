@@ -23,7 +23,7 @@ class DataPreparation:
         if not large_size:
             self.data = pd.read_csv(self.file_path)
         else:
-            self.data =self.read_large_csv(self.file_path,10000)
+            self.data =self.read_large_csv()
         remove_cols=['Unnamed: 0.1', 'Unnamed: 0',]
         if all(col in self.data.columns for col in remove_cols):
             self.data = self.data.drop(columns=['Unnamed: 0.1', 'Unnamed: 0'])
