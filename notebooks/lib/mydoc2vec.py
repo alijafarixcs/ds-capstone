@@ -34,13 +34,14 @@ class Doc2VecRecommender:
         self.lemmatizer = WordNetLemmatizer()
     def train_similarity(self):
         self.tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
-        self.tfidf_matrix = self.tfidf.fit_transform(self.data['all'])
+        self.tfidf_matrix = self.tfidf.fit_transform(self.data['all_clear'])
     def get_similars(self,query_desc):
-        query_vec = self.tfidf.transform([query_desc.lower()])
+        query_desc =self.preprocess(query_desc)
+        query_vec = self.tfidf.transform(query_desc)
 
         similarity_scores = cosine_similarity(query_vec,self.tfidf_matrix)
 
-        most_similar_idx = similarity_scores.argsort()[:,-10:]
+        most_similar_idx = similarity_scores.argsort()[:,-100:]
 
         return most_similar_idx    
     def recommend_by_text(self,search):
@@ -70,8 +71,9 @@ class Doc2VecRecommender:
     def load_model(self,path='doc2vec_model'):
          self.model = Doc2Vec.load(path)
     def get_similar_indexs(self,text=["This is a new document to find similar documents for"]):
+        text =self.preprocess(text[0])
         new_document_vector = self.model.infer_vector(text)
-        similar_docs = self.model.dv.most_similar(new_document_vector, topn=10)
+        similar_docs = self.model.dv.most_similar(new_document_vector, topn=100)
 
         for doc_index, similarity in similar_docs:
             yield (doc_index, similarity)

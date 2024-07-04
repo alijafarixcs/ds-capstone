@@ -79,7 +79,7 @@ class DataPreparation:
 
         # 3. Top Categories
         categories_exploded = self.data.explode('categories')
-        category_counts = categories_exploded['categories'].value_counts().head(10)
+        category_counts = categories_exploded['categories'].value_counts().head(20)
 
         plt.figure(figsize=(12, 8))
         sns.barplot(x=category_counts.values, y=category_counts.index, palette='magma')
