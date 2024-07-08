@@ -22,7 +22,7 @@ nltk.download('wordnet')
 
 
 class Doc2VecRecommender:
-    def __init__(self,data=None, vector_size=100, window=5, min_count=5, workers=4, epochs=20):
+    def __init__(self,data=None, vector_size=100, window=5, min_count=3, workers=6, epochs=30):
         self.vector_size = vector_size
         self.window = window
         self.min_count = min_count
@@ -68,6 +68,16 @@ class Doc2VecRecommender:
         self.model.build_vocab(train_docs)
         self.model.train(train_docs, total_examples=self.model.corpus_count, epochs=self.model.epochs)
         return test_docs
+    def train_hole(self, df):
+        self.data=df
+        #self.pls.set_worker()
+        #documents =self.pls.do_paralell(self.data,'all',self.preprocess)
+        documents = [TaggedDocument(self.preprocess(doc), [i]) for i, doc in enumerate(df['all'])]
+        train_docs=documents
+        self.model = Doc2Vec(vector_size=self.vector_size, window=self.window, min_count=self.min_count, workers=self.workers, epochs=self.epochs)
+        self.model.build_vocab(train_docs)
+        self.model.train(train_docs, total_examples=self.model.corpus_count, epochs=self.model.epochs)
+        return train_docs
     def load_model(self,path='doc2vec_model'):
          self.model = Doc2Vec.load(path)
     def get_similar_indexs(self,text=["This is a new document to find similar documents for"]):

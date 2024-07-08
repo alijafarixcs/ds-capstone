@@ -12,13 +12,13 @@ class DataPreparation:
 
     def read_large_csv(self, chunksize=100000):
         chunks = []
-        for chunk in pd.read_csv(self.file_path, chunksize=chunksize):
+        for chunk in pd.read_csv(self.file_path,low_memory=False, chunksize=chunksize):
             chunks.append(chunk)
         
         self.data = pd.concat(chunks, ignore_index=True)
         return self.data
     
-    def clean_and_preprocess(self,large_size=False):
+    def clean_and_preprocess(self,large_size=False,read_from_path=True):
         
         if not large_size:
             self.data = pd.read_csv(self.file_path)
@@ -29,15 +29,15 @@ class DataPreparation:
             self.data = self.data.drop(columns=['Unnamed: 0.1', 'Unnamed: 0'])
         
         
-        self.data['Price'] = self.data['Price'].fillna(np.mean(self.data['Price']))
+        self.data['Price'] = self.data['Price'].fillna(np.mean(self.data['price']))
         self.data['ratingsCount'] = self.data['ratingsCount'].fillna(np.mean(self.data['ratingsCount']))
-        self.data=self.data.dropna(subset=['Title', 'description'])
+        self.data=self.data.dropna(subset=['title'])
         self.data['authors'] = self.data['authors'].fillna('[]')
         self.data['categories'] = self.data['categories'].fillna('[]')
         self.data['publishedDate'] = pd.to_datetime(self.data['publishedDate'], errors='coerce')
         self.data['publishedDate'] = self.data['publishedDate'].ffill(axis=0)
         self.data['publishedDate'] = self.data['publishedDate'].bfill(axis=0)
-        self.data['Title']=self.data['Title'].astype(str)
+        self.data['title']=self.data['title'].astype(str)
        
         
         self.data['publishedDate'] = self.data['publishedDate'].replace({pd.NaT:np.nan})
@@ -51,7 +51,39 @@ class DataPreparation:
         self.data['categories'] = self.data['categories'].apply(ast.literal_eval)
         new_column_names = [col.lower().replace('review/', '') for col in self.data.columns]
         self.data.rename(columns=dict(zip(self.data.columns, new_column_names)),inplace=True)
-        self.data[~self.data.duplicated(subset=['description', 'title'], keep='first')]
+        self.data=self.data[~self.data.duplicated(subset=['description', 'title'], keep='first')]
+        self.data.fillna('',inplace=True)
+    
+    def light_clean_and_preprocess(self,large_size=False,read_from_path=True):
+        
+        if not large_size:
+            self.data = pd.read_csv(self.file_path)
+        else:
+            self.data =self.read_large_csv()
+        remove_cols=['Unnamed: 0.1', 'Unnamed: 0',]
+        if all(col in self.data.columns for col in remove_cols):
+            self.data = self.data.drop(columns=['Unnamed: 0.1', 'Unnamed: 0'])
+        
+        
+        self.data['price'] = self.data['price'].fillna(np.mean(self.data['price']))
+        self.data['ratingscount'] = self.data['ratingscount'].fillna(np.mean(self.data['ratingscount']))
+        self.data['authors'] = self.data['authors'].fillna('[]')
+        self.data['categories'] = self.data['categories'].fillna('[]')
+        self.data['publisheddate'] = pd.to_datetime(self.data['publisheddate'], errors='coerce')
+        self.data['publisheddate']=self.data['publisheddate'].sort_values()
+        self.data['publisheddate'] = self.data['publisheddate'].ffill(axis=0)
+        self.data['publisheddate'] = self.data['publisheddate'].bfill(axis=0) 
+        self.data['publisheddate'] = self.data['publisheddate'].replace({pd.NaT:np.nan})
+        self.data['review/time'] = pd.to_datetime(self.data['review/time'], unit='s', errors='coerce')
+        
+        
+        self.data[['helpful_votes', 'total_votes']] = self.data['review/helpfulness'].str.split('/', expand=True).astype(int)
+        self.data['review/helpfulness']=self.data['helpful_votes']/self.data[ 'total_votes']
+        self.data = self.data.drop(columns=['helpful_votes', 'total_votes'])
+        self.data['authors'] = self.data['authors'].apply(ast.literal_eval)
+        self.data['categories'] = self.data['categories'].apply(ast.literal_eval)
+        new_column_names = [col.lower().replace('review/', '') for col in self.data.columns]
+        self.data.rename(columns=dict(zip(self.data.columns, new_column_names)),inplace=True)
         self.data.fillna('',inplace=True)
     def Normalize(self):
         self.data=self.data.applymap(lambda x: x.lower() if type(x) is str else x)
@@ -60,8 +92,8 @@ class DataPreparation:
 
         # 1. Distribution of Review Scores
         plt.figure(figsize=(10, 6))
-        sns.barplot(data=self.data,x='score', color='skyblue')
-        plt.title('Distribution of Review Scores')
+        sns.barplot(data=self.data,x='authors', color='skyblue')
+        plt.title('Distribution of Review authors')
         plt.xlabel('Review Score')
         plt.ylabel('Frequency')
         plt.show()

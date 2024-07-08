@@ -46,26 +46,17 @@ app = Flask(__name__,template_folder="template_folder")
 @app.route('/predictsimilar', methods=['POST'])
 def predictsimilar():
     text = request.form['text']
-      # Get text from the form
+
     indexs=_doc2vec_load.get_similars(text)
-    
-    
-    #similar_docs =data_prep.data.loc[indexs[0]]
-    #results = []
-    #for doc_index in indexs:
-        #results.append(f"Doc Index: {doc_index.to_html()}, Similarity:<br>")
+
     return render_template('results.html', results=data_prep.data.loc[indexs[0]].drop_duplicates(subset='title')[['title']].to_html())
 
 @app.route('/predict', methods=['POST'])
 def predict():
     text = request.form['text']
-      # Get text from the form
+
     indexs=_doc2vec_load.recommend_by_text([text])
-    
-    #similar_docs =data_prep.data.loc[indexs[0]]
-    #results = []
-    #for doc_index in indexs:
-        #results.append(f"Doc Index: {doc_index.to_html()}, Similarity:<br>")
+
     return render_template('results.html', results=indexs.drop_duplicates(subset='title')[['title']].to_html())
 
 @app.route('/index')
