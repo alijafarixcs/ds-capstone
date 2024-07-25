@@ -29,17 +29,17 @@ from nltk.tokenize import word_tokenize
 #!pip install scipy==1.12
 SEED = 448
 
-file_path = 'data\cleared_columns.csv'
+file_path = 'data\cleared_columns_title.csv'
 data_prep = DataPreparation(file_path)
 data_prep.read_large_csv()
 random.seed(SEED)
 _doc2vec_load = Doc2VecRecommender(data_prep.data)
-_doc2vec_load.load_model(r'notebooks\models\doc2vec_model_hole')
+_doc2vec_load.load_model(r'notebooks\models\doc2vec_model_title')
 _doc2vec_load.train_similarity()
 
-from flask import Flask, render_template,request
+from flask import Flask, render_template,request, url_for
 
-app = Flask(__name__,template_folder="template_folder")
+app = Flask(__name__, static_url_path='',template_folder="template_folder", static_folder='static')
 
 
 
@@ -48,16 +48,17 @@ def predictsimilar():
     text = request.form['text']
 
     indexs=_doc2vec_load.get_similars(text)
+    indexs=data_prep.data.loc[indexs[0]][['index','title']]
+    return render_template('results.html',column_names=indexs.columns.values, row_data=list(indexs.values.tolist()), zip=zip)
 
-    return render_template('results.html', results=data_prep.data.loc[indexs[0]].drop_duplicates(subset='title')[['title']].to_html())
 
 @app.route('/predict', methods=['POST'])
 def predict():
     text = request.form['text']
 
-    indexs=_doc2vec_load.recommend_by_text([text])
+    indexs=_doc2vec_load.recommend_by_text([text])[['index','title']]
 
-    return render_template('results.html', results=indexs.drop_duplicates(subset='title')[['title']].to_html())
+    return render_template('results.html',column_names=indexs.columns.values, row_data=list(indexs.values.tolist()), zip=zip)
 
 @app.route('/index')
 def index():
@@ -84,6 +85,6 @@ def index():
     """
 
 if __name__ == '__main__':
-    
+    #app.debug=True
     app.run()
 

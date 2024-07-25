@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
 nltk.download('wordnet')
-
+import numpy as np
 
 
 
@@ -41,14 +41,19 @@ class Doc2VecRecommender:
 
         similarity_scores = cosine_similarity(query_vec,self.tfidf_matrix)
 
-        most_similar_idx = similarity_scores.argsort()[:,-100:]
+        most_similar_idx = similarity_scores.argsort()[:,-20:]
 
         return most_similar_idx    
     def recommend_by_text(self,search):
-        lists=[]
-        for i in self.get_similar_indexs(search):
-            lists.append(self.data.iloc[i[0]])
-        return pd.DataFrame(lists)
+        dfs=[]
+        if len(search[0])>10:
+            dfs.append(self.data[self.data['all'].str.contains(search[0], case=False) ])
+        
+        indexs=[i[0] for i in self.get_similar_indexs(search)]
+        dfs.append(self.data.iloc[indexs,:])
+        df = pd.concat(dfs, ignore_index=True)
+        df=df.groupby('title').head(1)
+        return df
     def preprocess(self, text,stop_words_temp=stop_words):
         
         lemmatizer = self.lemmatizer
@@ -83,7 +88,7 @@ class Doc2VecRecommender:
     def get_similar_indexs(self,text=["This is a new document to find similar documents for"]):
         text =self.preprocess(text[0])
         new_document_vector = self.model.infer_vector(text)
-        similar_docs = self.model.dv.most_similar(new_document_vector, topn=100)
+        similar_docs = self.model.dv.most_similar(new_document_vector, topn=20)
 
         for doc_index, similarity in similar_docs:
             yield (doc_index, similarity)
@@ -92,3 +97,13 @@ class Doc2VecRecommender:
                 inferred_vector = self.model.infer_vector(df[doc_id])
                 sims = self.model.dv.most_similar([inferred_vector], topn=10)
                 yield (doc_id,sims)
+    def get_all_vecs(self):
+            all_doc_vectors = []
+            return np.array([self.model.infer_vector(i.strip().split()) for i in self.data['all_clear']])
+    def get_similars_by_gensim(self,query_desc,vecs):
+        query_desc =self.preprocess(query_desc)
+        new_document_vector = self.model.infer_vector(query_desc)
+        similar_docs = self.model.dv.cosine_similarities(new_document_vector,vecs)
+        most_similar_idx = similar_docs.argsort()[:20]
+
+        return most_similar_idx    

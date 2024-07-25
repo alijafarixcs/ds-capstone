@@ -90,25 +90,6 @@ class DataPreparation:
     def generate_plots(self):
         sns.set(style="whitegrid")
 
-        # 1. Distribution of Review Scores
-        plt.figure(figsize=(10, 6))
-        sns.barplot(data=self.data,x='authors', color='skyblue')
-        plt.title('Distribution of Review authors')
-        plt.xlabel('Review Score')
-        plt.ylabel('Frequency')
-        plt.show()
-
-        # 2. Most Reviewed Authors
-        authors_exploded = self.data.explode('authors')
-        author_counts = authors_exploded['authors'].value_counts().head(10)
-
-        plt.figure(figsize=(12, 8))
-        sns.barplot(x=author_counts.values, y=author_counts.index, palette='viridis')
-        plt.title('Top 10 Most Reviewed Authors')
-        plt.xlabel('Number of Reviews')
-        plt.ylabel('Authors')
-        plt.show()
-
         # 3. Top Categories
         categories_exploded = self.data.explode('categories')
         category_counts = categories_exploded['categories'].value_counts().head(20)

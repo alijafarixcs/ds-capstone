@@ -1,16 +1,90 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>ML System Results</title>
-</head>
-<body>
-    <h1>Prediction Results</h1>
-    
-     
-        <!-- {% for result in results %}
-        <li>{{ result }}</li>  {% endfor %} -->
-        {{ results | safe}}
+
+
+
+
+
+<table>
+    <thead>
+
+      <tr>
+        {% for col in column_names %}
+        <th>
+        
+          {{col}}
+         
+        </th>
+        {% endfor %}
+      </tr>
+
+    </thead>
+    <tbody>
+      {% for row in row_data %}
+      <tr>
+        <td> <img id="{{ row[0]}}" src="/images/a.jpg" style="width: 100px;height: auto;" alt="{{ row[1]}}"  /></td>
+   
+        {% for col, row_ in zip(column_names, row) %}
+        
+
+       
+        <td>{{row_}}</td>
       
+        {% endfor %}
+
+      </tr>
+      {% endfor %}
+
+     
+    </tbody>
+
+  </table>
+  <!-- 
+  
+  <script>
+    function getSearchQuery(mytext) {
+  // Replace with your desired search query
+  return mytext;
+}
+
+async function getFirstImageUrl(mytext) {
+  try {
+    const searchQuery = getSearchQuery(mytext);  // Call the function to get the search query
+    const encodedQuery = encodeURIComponent(searchQuery);  // Encode the query for URL inclusion
+
+    const targetUrl = `https://www.amazon.de/s?k=${encodedQuery}`;  // Build the URL with the search query
+
+    const response = await fetch(targetUrl);
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const firstSgColInner = doc.querySelector('.sg-col-inner');
+
+    if (firstSgColInner) {
+      const imageTag = firstSgColInner.querySelector('img');
+      if (imageTag) {
+        return imageTag.src;
+      }
+    }
+
+    return null; // No image found or error
+  } catch (error) {
+    console.error('Error fetching or parsing:', error);
+    return null;
+  }
+}
+  </script>
+  <script  type="text/javascript">
+    var myJsList = {{ row_data|tojson }};
+    myJsList.forEach(row => {
+        let imageElement = document.getElementById(row[0]);
+        let imageUrl=getFirstImageUrl(row[1]);
+        imageElement.src = imageUrl;
+    });
+
+
+
+
     
-</body>
-</html>
+ 
+</script> -->
+
